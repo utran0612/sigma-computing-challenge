@@ -7,11 +7,12 @@ import uuid
 class SigmaFileSystem:
 
     def __init__(self):
-        # store each file type as a dictionary, with key be the folder and values be the files of the given type
+        # store each file type as a dictionary, with key be the fileId and values be the folderId that the file is in
         self.dashboard = {}  # {fileId:folderId}
         self.worksheet = {}
         self.folder = {}
-        self.all_files = {}  # store a dict with all files
+        # store a dict with all files, {folderId:[all files in folder]}
+        self.all_files = {}
         self.rootId = 0  # rootId set to default
 
     # Feel free to modify the parameter/return types of these functions
@@ -117,7 +118,52 @@ class SigmaFileSystem:
 
     def print_files(self) -> None:
         # TODO: implement by BFS or DFS
-        return 1
+        folders = self.all_files
+        #all_folders = self.all_files.items()
+        visited = set()
+        root = self.rootId
+
+        def dfs(folderId, parent):
+            # not a folder but a worksheet or a dashboard
+            if folderId not in folders:
+                if folderId in self.dashboard:
+                    if parent == 0:
+                        print(self.dashboard[folderId][0],
+                              " in ", "MyDocuments")
+                    else:
+                        print(self.dashboard[folderId][0],
+                              " in ", self.folder[parent][0])
+                elif folderId in self.worksheet:
+                    if parent == 0:
+                        print(self.worksheet[folderId][0],
+                              " in ", "MyDocuments")
+                    else:
+                        print(self.worksheet[folderId][0],
+                              " in ", self.folder[parent][0])
+                return
+
+            # an empty folder
+            if folders[folderId] == []:
+                return {}
+
+            # print folderName, if folderId
+            if folderId == self.rootId:
+                print("MyDocuments")
+            else:
+                if parent == self.rootId:
+                    print(self.folder[folderId][0],
+                          " in ", "MyDocuments")
+                else:
+                    print(self.folder[folderId][0],
+                          " in ", self.folder[parent][0])
+
+            # loop through each folder/file in the folder and do dfs on it
+            visited.add(folderId)
+            for child_folder in folders[folderId]:
+                if child_folder not in visited:
+                    visited.add(child_folder)
+                    dfs(child_folder, folderId)
+        dfs(root, None)
 
         # /////////////////////////////////////////////////////////
         # // YOU DO NOT NEED TO MAKE CHANGES BELOW UNLESS NECESSARY
@@ -151,7 +197,6 @@ def run_example():
         fs.add_new_file(filename, "worksheet", projectId)
 
     fs.add_new_file("cover", "dashboard", projectId)
-    print(fs.dashboard)
     fs.move_file(projectId, completeId)
     projectId = fs.get_file_id("project", completeId)
     coverId = fs.get_file_id("cover", projectId)
@@ -164,8 +209,7 @@ def run_example():
 
     print(fs.get_total_dashboards())
     print(fs.get_total_worksheets())
-    print(fs.all_files)
-    # fs.print_files()
+    print(fs.print_files())
 
 
 def ask_for_int(question: str) -> int:
