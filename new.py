@@ -7,11 +7,11 @@ import uuid
 class SigmaFileSystem:
 
     def __init__(self):
-        # store each file type as a dictionary, with key be the fileId and values be the folderId that the file is in
-        self.dashboard = {}  # {fileId:folderId}
+        # store each file type as a dictionary
+        self.dashboard = {}  # {fileId:[fileName, folderId]}
         self.worksheet = {}
         self.folder = {}
-        # store a dict with all files, {folderId:[all files in folder]}
+        # store a dict with all files, {parentId:[childrenId]}
         self.all_files = {}
         self.rootId = 0  # rootId set to default
 
@@ -44,6 +44,7 @@ class SigmaFileSystem:
 
         # generate unique id
         id = str(uuid.uuid1())
+
         # If file type is dashboard
         if fileType == 'dashboard':
             # add to dashboard dict
@@ -71,7 +72,7 @@ class SigmaFileSystem:
         if folderId == None:
             return self.rootId
 
-        all_files_in_folder = self.all_files[folderId]
+        all_files_in_folder = self.all_files[folderId]  # [parent:[children]]
         for fileId in all_files_in_folder:
             if fileId in self.dashboard and self.dashboard[fileId][0] == fileName:
                 return fileId
@@ -107,11 +108,12 @@ class SigmaFileSystem:
         res = []
         all_ids = self.all_files[folderId]
         for id in all_ids:
+            # find the fileType, get fileName
             if id in self.dashboard:
                 res.append(self.dashboard[id][0])
-            if id in self.worksheet:
+            elif id in self.worksheet:
                 res.append(self.worksheet[id][0])
-            if id in self.folder:
+            elif id in self.folder:
                 res.append(self.folder[id][0])
 
         return res
